@@ -18,11 +18,6 @@ bunkerHill.birds <- subset(data.less, site_name == "BunkerHill")
 bunkerHill.birds  <- subset(bunkerHill.birds, V1+V2+V3>0)
 unique(bunkerHill.birds$Species_code)
 
-#bunkerHill.birds$mean  <- rowMeans(bunkerHill.birds[,2:4]) 
-#dot
-dotchart(bunkerHill.birds$mean,labels=bunkerHill.birds$site)
-dotchart(data.less$mean,labels=data.less$site_name)
-
 
 site_n  <- unique(data.less$site_name)
 
@@ -43,10 +38,38 @@ data.less$Site[data.less$Species_code == "AMPI"] == data.less$Site[data.less$Spe
 tdata.birds  <- aggregate(data.less, by= data.less$Species_code == "AMGP")
 
 tdata.birds  <-  (data.less[c(which(data.less$Species_code == "AMGP")),c(1,8,9)])
-tdata.birds2  <- (data.less[c(which(data.less$Species_code == "AMPI")),c(1,8,9)])
-tdata.birds3  <- (data.less[c(which(data.less$Species_code == "AMRO")),c(1,8,9)])
 names(tdata.birds)   
 names(tdata.birds)[3]<-paste("AMGP")
 all(tdata.birds$Site == tdata.birds3$Site)
 tdb  <-   cbind.data.frame(tdata.birds,tdata.birds2, check.names = T)
   
+install.packages("ggplot2")
+library("ggplot2")
+install.packages("dplyr")
+library("dplyr")
+install.packages("tidyr")
+library("tidyr")
+library(stringr)
+ df.birds <- data.less[data.less$mean >0,]
+p3 <-  ggplot(df.birds, aes(site_name, Species_code, size= mean ))+ geom_point()
+names(df.flora)
+data.flora$BHt <- 0
+data.flora2 <- data.flora[-c(1:4)]
+str(data.flora2)
+data.flora2$site_name <-  as.factor(data.flora2$site_name)
+data.flora2$site_name <- c(1:5)
+df.flora <-  aggregate(data.flora2,by= data.flora2["site_name"], sum)
+
+grep("Ht$", names(df.flora))
+df.flora
+df.floraP <-  gather(df.flora[,c(1,grep("^P", names(df.flora)))],name,percent,-site_name)
+df.floraHt <-  gather(df.flora[,c(1,grep("Ht$", names(df.flora)))],name,height,-site_name)
+df_flora_tall <-  cbind(df.floraP,"height" = df.floraHt$height)
+df_flora_tall <- df_flora_tall[df_flora_tall$percent >0 ,]
+df_flora_tall$name <-  str_replace(df_flora_tall$name, "^P","")
+#str(df_flora_tall)
+p1 <-  ggplot(df_flora_tall, aes(site_name,name, size=percent))+ geom_point()
+p2 <- ggplot(df_flora_tall, aes(site_name,name, size=height))+ geom_point()
+#ggplot(df_flora_tall, aes(percent,height, color=name))+ geom_point()
+
+grid.arrange(p1,p2,p3, layout_matrix= cbind(c(3,3),c(1,2)))
